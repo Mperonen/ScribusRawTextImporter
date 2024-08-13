@@ -17,14 +17,19 @@ def create_page(page_number):
 
 
 
-def create_text_frame(target_layer, prev_text_frame = False, text_data = ""):
+def create_text_frame(current_page_number, target_layer, prev_text_frame = False, text_data = ""):
     page_size = scribus.getPageSize()
     page_margins = scribus.getPageMargins()
 
     text_frame_width = page_size[0] - (page_margins[0] + page_margins[2])
     text_frame_height = page_size[1] - (page_margins[1] + page_margins[3])
 
-    new_text_frame = scribus.createText(page_margins[0], page_margins[1], text_frame_width, text_frame_height, target_layer)
+    if scribus.getPageType(current_page_number) == 0:
+        x = page_margins[2]
+    else:
+        x = page_margins[0]
+
+    new_text_frame = scribus.createText(x, page_margins[1], text_frame_width, text_frame_height, target_layer)
     if prev_text_frame:
         scribus.linkTextFrames(prev_text_frame, new_text_frame)
     else:
@@ -70,11 +75,11 @@ current_page_number = 1
 scribus.gotoPage(current_page_number)
 
 # STEP 3: create the first text frame and set the imported text on to it.
-previous_text_frame = create_text_frame(layer_name, False, imported_text)
+previous_text_frame = create_text_frame(current_page_number, layer_name, False, imported_text)
 
 # STEP 4: Iterate. As long as the text frame linking is overflowing, create a new page and add a new linked textrame
 while scribus.textOverflows(previous_text_frame) == 1:
     current_page_number += 1
     scribus.newPage(-1)
     scribus.gotoPage(current_page_number)
-    previous_text_frame = create_text_frame(layer_name, previous_text_frame, "")
+    previous_text_frame = create_text_frame(current_page_number, layer_name, previous_text_frame, "")
